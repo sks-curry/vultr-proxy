@@ -320,7 +320,48 @@ pause
 
 ---
 
-## 九、安全建议
+## 九、WebRTC 泄露风险与防护
+
+### 什么是 WebRTC 泄露
+
+WebRTC 是浏览器内嵌的点对点实时通信协议，用于 Google Meet、Zoom Web 版等应用。它为了建立直连，会通过 STUN 协议向外部服务器查询你的公网 IP，**这个查询不走系统代理**。
+
+```
+浏览器主流量 ──▶ 系统代理 ──▶ SSH 隧道 ──▶ Vultr ──▶ 目标网站  ← IP: 149.248.16.188 ✓
+WebRTC STUN ──▶ 直接出网 ──▶ Google STUN 服务器              ← IP: 49.77.x.x ✗ 泄露!
+```
+
+### 检测是否泄露
+
+代理连接状态下打开 https://ipleak.net，往下滚动到 **"WebRTC Leak Test"** 区域：
+
+- 看到 `Public IP Address: 49.77.x.x` → **正在泄露**
+- 看到 `n/a` 或空白 → 安全
+
+### 修复方法
+
+**方法一：安装 WebRTC Leak Prevent 扩展（推荐）**
+
+Chrome / Edge 均适用：
+
+1. 打开 https://chromewebstore.google.com/detail/webrtc-leak-prevent/eiadekoaikejlgdbkbdfeijglgfdalml
+2. 添加到浏览器
+3. 点击扩展图标 → 选择 **Disable WebRTC**
+4. 刷新 ipleak.net 确认不再显示真实 IP
+
+**方法二：浏览器设置（Edge）**
+
+地址栏输入 `edge://flags/#enable-webrtc-hide-local-ips-with-mdns`，改为 **Disabled**。
+
+**方法三：Chrome WebRTC 策略**
+
+地址栏输入 `chrome://settings/content/webrtc`，关闭 WebRTC。
+
+> **推荐方法一**，一键开关，随时控制。官方仓库：[aghorler/WebRTC-Leak-Prevent](https://github.com/aghorler/WebRTC-Leak-Prevent)
+
+---
+
+## 十、安全建议
 
 - 禁用密码登录：`/etc/ssh/sshd_config` → `PasswordAuthentication no` → `systemctl reload sshd`
 - Tinyproxy 只监听 127.0.0.1，公网无法直连
@@ -329,7 +370,7 @@ pause
 
 ---
 
-## 十、实测数据
+## 十一、实测数据
 
 ### 洛杉矶节点（建议默认使用）
 
@@ -364,7 +405,7 @@ pause
 
 ---
 
-## 十一、代理原理
+## 十二、代理原理
 
 ### HTTP 代理工作方式
 
